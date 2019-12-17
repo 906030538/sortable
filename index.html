@@ -1,0 +1,618 @@
+<html>
+	<head>
+		<title>board</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=0.8, minimum-scale=0.8, maximum-scale=1.0, user-scalable=yes" />
+		<style>
+			body {margin: 0}
+			img {max-width: 100%;}
+			.table > .row.anime > .tr {
+				transition: background-color .3s, top 3s ease;
+				/* transition: 3s cubic-bezier(1, 0, 1, 1); */
+			}
+			.table {
+				height: 94%;
+				overflow-y: scroll;
+				overflow-x: hidden;
+			}
+			.table > .row {
+				/* width: 100%; */
+				min-width: 27rem; /* .rank + .team + .score + 1 */
+				/* height: 3rem; */ /* 消除inline-block间隙，需要在此处固定高度 */
+				position: relative;
+				background-color: black;
+			}
+			/* 
+			.table > .row > :not(:nth-child(1)),
+			.table > .row > .tr,
+			*/
+			.table > .row > div {
+				width: 100%;
+				height: 100%;
+				min-height: 100%;
+				border: none;
+				position: absolute;
+				text-align: left;
+				font-size: 0; /* 消除inline-block间隙 */
+				overflow: hidden;
+				transform-origin: left;
+			}
+			/* .table > .row > :nth-child(1), */
+			.table > .row > .th {
+				position: relative;
+				display: inline;
+				/* height: 3rem; */ /* 消除inline-block间隙，此处高度不再适用 */
+				color: white;
+			}
+			.table > .row > * > .td {
+				display: inline-block;
+				position: relative;
+				vertical-align: top;
+				border: 1px solid lightgrey;
+				/* border-left: none; */
+				margin: 0 -1px -1px -1px;
+				/* background-color: white; */
+				line-height: 3rem;
+				font-size: medium; /* 消除inline-block间隙 */
+				text-align: center;
+			}
+			.table > .row > .th > .td {
+				background-color: black;
+			}
+			.table > .row > .th > .rank {
+				border-left: 1px solid black;
+			}
+			.table > .row > * > .rank {
+				width: 3rem;
+			}
+			.table > .row > * > .team {
+				width: 19rem;
+			}
+			.table > .row > * > .score {
+				width: 5rem;
+			}
+			.table > .row > * > .problem {
+				width: 3rem;
+				height: 3rem;
+			}
+			.table > .row > .tr.static {
+				background-color: grey;
+			}
+			.table > .row > .tr {
+				color: black;
+				background-color: white;
+				border-bottom: 1px solid black;
+				border-top: 1px solid black;
+			}
+			.table > .row > .tr:hover {
+				background-color: lightskyblue;
+			}
+			.table > .row > .tr > .team {
+				text-align: right;
+				height: 3rem;
+				white-space: nowrap;
+			}
+			.table > .row > .tr > .team > .logo{
+				position: absolute;
+				left: 0;
+				height: 100%;
+			}
+			/* .table > .row > .tr > .team > div:first-child, */
+			.table > .row > .tr > .team > .name {
+				line-height: 1.5rem;
+				font-weight: bold;
+				margin: 0 .5rem 0 3.5rem;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.table > .row > .tr > .team > .name > .tag {
+				display: inline-block;
+				font-weight: normal;
+				font-size: small;
+				padding: 0 5px;
+				margin-right: 1rem;
+				border-radius: 0.5rem;
+				background: orange;
+			}
+			/* .table > .row > .tr > .team > div:last-child, */
+			.table > .row > .tr > .team > .org {
+				line-height: 1.5rem;
+				font-size: small;
+				margin: 0 .5rem 0 3.5rem;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			/* .table > .row > .tr > .score > label:first-child, */
+			.table > .row > .tr > .score > .solved {
+				font-weight: bold;
+			}
+			/* 
+			table > .row > .tr > .score > label:last-child,
+			.table > .row > .tr > .score > .penalty_time {
+				font-weight: normal;
+			}
+			*/
+			.table > .row.anime > .tr > .problem {
+				transition: 1s ease;
+			}
+			.table > .row > .tr > .problem.queue {
+				background-color: orange;
+				transform: rotateZ(720deg)
+			}
+			.table > .row > .tr > .problem.solved {
+				background-color: lightgreen;
+			}
+			.table > .row > .tr > .problem.wrong {
+				background-color: lightcoral;
+			}
+			.table > .row > .tr > .problem.first {
+				background-color: green;
+			}
+			/* .table > .row > .tr > .problem > div:first-child, */
+			.table > .row > .tr > .problem > .time {
+				padding-bottom: 1.5rem;
+				line-height: 1.5rem;
+			}
+			/* .table > .row > .tr > .problem > div:last-child, */
+			.table > .row > .tr > .problem > .times {
+				position: absolute;
+				bottom: .5rem;
+				left: 0;
+				width: 100%;
+				font-size: small;
+				line-height: normal;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="table">
+			<div class="row anime">
+				<div class="th"><!--
+					--><a class="td rank">Rank</a><!--
+					--><a class="td team">Team</a><!--
+					--><a class="td score">Score</a><!--
+					--><a class="td problem">A</a><!--
+					--><a class="td problem">B</a><!--
+					--><a class="td problem">C</a><!--
+					--><a class="td problem">D</a><!--
+					--><a class="td problem">E</a><!--
+					--><a class="td problem">F</a><!--
+					--><a class="td problem">G</a><!--
+					--><a class="td problem">H</a><!--
+					--><a class="td problem">I</a><!--
+					--><a class="td problem">J</a><!--
+					--><a class="td problem">K</a><!--
+					--><a class="td problem">L</a><!--
+					--><a class="td problem">M</a><!--
+				--></div>
+				<div id="team1" class="tr ol1">
+					<div class="td rank">1</div>
+					<div class="td team">
+						<img class="logo" src="Rewrite.ico" />
+						<div class="name">
+							<span class="tag">Regular-Team</span>
+							<label class="teamname">Amadeus</label>
+						</div>
+						<div class="org">Anhui University</div>
+					</div>
+					<div class="td score">
+						<label class="solved">10</label>
+						<label class="penalty_time">1000</label>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+					<div class="td problem">
+						<div class="time">10</div>
+						<div class="times">1000</div>
+					</div>
+				</div>
+				<div id="team2" class="tr ol2"></div>
+				<div id="team3" class="tr ol3"></div>
+				<div id="team4" class="tr ol4"></div>
+				<div id="team5" class="tr ol5"></div>
+				<div id="team6" class="tr ol6"></div>
+				<div id="team7" class="tr ol7"></div>
+				<div id="team8" class="tr ol8"></div>
+				<div id="team9" class="tr ol9"></div>
+				<div id="team10" class="tr ol10"></div>
+			</div>
+		</div>
+		<p>
+			<button onclick="order();step()">1 step</button>
+			<button onclick="order();step(10)">10 steps</button>
+			<button onclick="autoroll()">auto</button>
+			<button onclick="clearInterval(localstatus.auto)">stop</button>
+			<button onclick="goTo()">goto</button>:
+			<input id="goTo" />
+			<button onclick="order()">sort</button>
+			<button onclick="$('.table').animate({scrollTop: 0})">top</button>
+			<a href="/?f">终榜</a>
+			<a href="/#">封榜滚榜</a>
+			<!--
+			<br />
+			已知问题
+			<ul>
+				<li>表高必须先定义</li>
+				<li>行高<del>必须先定义</del>由表头确定，且每行一致</li>
+				<li>IE要求版本>8（不兼容ie on xp）</li>
+			</ul>
+			-->
+		</p>
+		<!-- Libs -->
+		<!-- <script src="jquery.min.js" type="text/javascript"></script> -->
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js" type="text/javascript"></script> -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" type="text/javascript"></script>
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie.min.js" type="text/javascript"></script> -->
+		<!-- Sortable -->
+		<script>
+			// 状态储存
+			var localstatus = {
+				init: false,
+				timestamp: 0,
+				info: {},
+				team_count: 0,
+				first: {},
+				board: [],
+				list: {},
+				step: -1,
+				auto: null,
+				vector: 1
+			}
+			var penalty_CE = false
+			// 生成Id
+			function teamid(teamid) {
+				return 'team' + teamid
+			}
+			// 根据team找logo，未实现
+			function logoimage(team) {
+				return "Rewrite.ico"
+			}
+			// 根据position将目标行移动到指定位置
+			function calctop(target, position) {
+				target.css('z-index', localstatus.team_count - position + 10)
+				target.css('top', (parseInt(position) + 1) * 100 + '%')
+			}
+			// 单行变动时修改状态
+			function raise(teamid) {
+				var i = localstatus.list[teamid]
+				while (i > 0 && (localstatus.board[i].solved > localstatus.board[i-1].solved || localstatus.board[i].solved == localstatus.board[i-1].solved && localstatus.board[i].penalty_time < localstatus.board[i-1].penalty_time)) {
+					var t = localstatus.board[i-1]
+					localstatus.board[i-1] = localstatus.board[i]
+					localstatus.board[i] = t
+					--i
+					// if (localstatus.board[i].rank !=)
+					localstatus.list[t.id] = parseInt(localstatus.list[t.id]) + 1
+				}
+				for (var j = i; j <= localstatus.list[teamid]; ++j) if (j>0) {
+					if (localstatus.board[j].solved == localstatus.board[j-1].solved && localstatus.board[j].penalty_time == localstatus.board[j-1].penalty_time)
+						localstatus.board[j].rank = localstatus.board[j-1].rank
+					else
+						localstatus.board[j].rank = parseInt(j) + 1
+				} else {
+					localstatus.board[0].rank = 1
+				}
+				var r = localstatus.list[teamid] - i
+				localstatus.list[teamid] = i
+				return r
+			}
+			// 更新全部数据
+			function order() {
+				localstatus.board[0].rank = 1
+				for (var i in localstatus.board) {
+					var target = $('#' + teamid(localstatus.board[i].id))
+					var score = target.children('.score')
+					// 绘制得分
+					score.children('.solved').text(localstatus.board[i].solved)
+					score.children('.penalty_time').text(parseInt(localstatus.board[i].penalty_time / 60))
+					var problem = target.children('.problem')
+					// 绘制单题评测状态
+					for (var j in localstatus.board[i].problem) {
+						var item = localstatus.board[i].problem[j]
+						var p = problem.filter('[name=' + j + ']')
+						if (item.next) {
+							p.children('.times').text(item.times)
+							p.addClass('queue')
+						}else if (item.time) {
+							p.children('.time').text(parseInt(item.time / 60))
+							p.children('.times').text(item.times)
+							p.addClass('solved')
+						} else if (item.times) {
+							p.children('.times').text(item.times)
+							p.addClass('wrong')
+						}
+					}
+					// 计算rank
+					// if (i>0) if (localstatus.board[i].solved == localstatus.board[i-1].solved && localstatus.board[i].penalty_time == localstatus.board[i-1].penalty_time)
+					// 	localstatus.board[i].rank = localstatus.board[i-1].rank
+					// else
+					// 	localstatus.board[i].rank = parseInt(i) + 1
+					target.children('.rank').text(localstatus.board[i].rank)
+					calctop(target, i)
+				}
+				// 绘制最快解题
+				for (var i in localstatus.first) if (localstatus.first[i]) {
+					var target = $('#' + teamid(localstatus.first[i]))
+					target.find('.problem[name=' + i + ']').addClass('first')
+				}
+				$('.table').stop(true, true)
+				var i = localstatus.step
+				i = ~i ? i : 0
+				$('.table').animate({scrollTop: $('#' + teamid(localstatus.board[i].id)).position().top - this.innerHeight / 3}, 'slow')
+			}
+			function getFreeze() {
+				var t = localstatus.info["length"].split(':')
+				var f = localstatus.info["scoreboard-freeze-length"].split(':')
+				return (parseInt(t[0]) * 3600 + parseInt(t[1]) * 60 + parseInt(t[2])) - (parseInt(f[0]) * 3600 + parseInt(f[1]) * 60 + parseInt(f[2]))
+			}
+			function step(n) {
+				n = n ? n : 1
+				while (n-- && localstatus.step > -1) {
+					var team = localstatus.board[localstatus.step]
+					var tid = teamid(team.id)
+					var target = $('#' + tid)
+					$('.table').stop(true, true)
+					$('.table').animate({scrollTop: target.position().top - this.innerHeight / 3}, 'slow')
+					// $('.table').scrollTop(target.position().top - innerHeight / 2)
+					var next = null
+					for (var i in team.problem) if (team.problem[i].next && (next == null || team.problem[next].next_time > team.problem[i].next_time)) next = i
+					if (next) {
+						var item = team.problem[next]
+						var p = target.children('.problem[name=' + next + ']')
+						if (item.time) {
+							localstatus.board[localstatus.step].solved += 1
+							localstatus.board[localstatus.step].penalty_time += parseFloat(item.time) + (item.times - 1) * 20 * 60
+							p.children('.time').text(parseInt(item.time / 60))
+							p.addClass('solved')
+							p.removeClass('queue')
+							raise(team.id)
+							// var score = target.children('.score')
+							// score.children('.solved').text(localstatus.board[localstatus.step].solved)
+							// score.children('.penalty_time').text(parseInt(localstatus.board[localstatus.step].penalty_time / 60))
+							// while (localstatus.vector <= 0);
+							// localstatus.vector--
+							// var r = raise(team.id)
+							// localstatus.vector++
+							// target.children('.rank').text(team.rank)
+							// if (r) {
+							// 	setTimeout(function() {
+							// 		calctop(target, localstatus.step - r)
+							// 		for (var j = localstatus.step; j > localstatus.step - r; --j) {
+							// 			var t = $('#' + teamid(localstatus.board[j].id))
+							// 			calctop(t, j)
+							// 			t.children('.rank').text(localstatus.board[j].rank)
+							// 		}
+							// 	}, 1000);
+							// 	// localstatus.step++
+							// 	// continue
+							// }
+						} else {
+							// var next = null
+							// for (var i in team.problem) if (team.problem[i].next && (next == null || team.problem[next].next_time > team.problem[i].next_time)) next = i
+							p.addClass('wrong')
+							p.removeClass('queue')
+						}
+						team.problem[next].next = null
+					} else {
+						target.addClass('static')
+						localstatus.step--
+					}
+				}
+				// order()
+			}
+			function autoroll() {
+				clearInterval(localstatus.auto)
+				localstatus.auto = setInterval(function(){
+					order()
+					step()
+				}, 1000)
+			}
+			function goTo() {
+				var i = $('#goTo').val()
+				while(localstatus.step >= i) step()
+				order()
+			}
+			// 初始化状态
+			function initcontest(data) {
+				mode = location.search ? -1 : 1
+				var table = $('.table')
+				var row = table.children('.row')
+				// 取消动画（影响不大）
+				// row.removeClass('anime')
+				var th = table.find('.th')
+				// 清空原有数据
+				th.children('.problem').remove()
+				row.children('.tr').remove()
+				// 绘制标题信息
+				localstatus.info = data.contest.info
+				// 绘制表头题目列
+				for (var item in data.contest.problem) {
+					var i = data.contest.problem[item]
+					var problem = $('<a class="td problem"></a>').text(i.label).attr('title', i.name)
+					if (i.rgb) {
+						if (i.rgb.match(/^([\da-fA-F]{1,2}){3,4}$/)) problem.css('background-color', '#' + i.rgb)
+						else problem.css('background-color', i.rgb)
+						// 根据背景颜色调整字体颜色
+						// BUG: 加载完成前无法取到计算后的值
+						var j = problem.css('background-color').match(/^rgba?\((\d+), (\d+), (\d+)/)
+						if (j && parseInt(j[1]) + parseInt(j[2]) + parseInt(j[3]) > 400) problem.css('color', 'black')
+					}
+					th.append(problem)
+					localstatus.first[i.id] = null
+				}
+				// 解析队伍信息
+				localstatus.team_count = data.contest.team.length
+				for (var i in data.contest.team) {
+					ti = data.contest.team[i]
+					var id = teamid(ti.id)
+					var stat = {
+						id: ti.id,
+						rank: 0,
+						solved: 0,
+						penalty_time: 0,
+						problem: {}
+					}
+					var team = $('<div class="tr"><div class="td rank"></div><div class="td team"><img class="logo" /><div class="name"><label class="teamname"></label></div><div class="org"></div></div><div class="td score"><label title="solved" class="solved">0</label>&nbsp;<label title="penalty time" class="penalty_time">0</label></div></div>')
+					team.attr('id', id).attr('title', id)
+					team.find('.logo').attr('src', logoimage(ti))
+					// team.find('.tag').text(ti.region) // <span class="tag"></span>
+					team.find('.teamname').text(ti.name).attr('title', ti.name)
+					team.find('.org').text(ti.university).attr('title', ti.university)
+					for (var item in data.contest.problem) {
+						var j = data.contest.problem[item]
+						team.append($('<div class="td problem"><div class="time"></div><div class="times"></div></div>').attr('name', j.id).attr('title', j.label))
+						stat.problem[j.id] = {time: null, times: 0, next: null, next_time: null}
+					}
+					// rank/position 顺序
+					localstatus.board[i] = stat
+					// team: position 表
+					localstatus.list[ti.id] = i
+					row.append(team)
+				}
+				// 生成榜单
+				if (mode == -1) {
+					// 当前/最终状态
+					for (var item in data.contest.run) {
+						var i = data.contest.run[item]
+						var r = localstatus.list[i.team]
+						// 有time属性表示AC，AC后的提交一概不处理
+						if (i.status == 'done' && localstatus.board[r].problem[i.problem].time == null) switch (i.result) {
+							case 'CE':
+							case 'compiler-error':
+								if (penalty_CE) {
+									localstatus.board[r].problem[i.problem].times += 1
+								}
+							break
+							case 'AC':
+							case 'correct':
+								localstatus.board[r].problem[i.problem].time = parseFloat(i.time)
+								localstatus.board[r].solved += 1
+								localstatus.board[r].penalty_time += parseFloat(i.time) + localstatus.board[r].problem[i.problem].times * 20 * 60
+								if (
+									localstatus.first[i.problem] == null || 
+									localstatus.board[localstatus.list[localstatus.first[i.problem]]].problem[i.problem].time > i.time
+								) localstatus.first[i.problem] = i.team
+							default:
+								localstatus.board[r].problem[i.problem].times += 1
+								raise(i.team)
+							break
+						}
+					}
+					localstatus.step = 0
+				} else if (mode == 1) {
+					// 封榜前的状态
+					var t = getFreeze()
+					for (var item in data.contest.run) {
+						var i = data.contest.run[item]
+						var r = localstatus.list[i.team]
+						// 有time属性表示AC，AC后的提交一概不处理
+						if (i.status == 'done' && localstatus.board[r].problem[i.problem].time == null) {
+							// 封榜前
+							if (parseFloat(i.time) < t) switch (i.result) {
+								case 'CE':
+								case 'compiler-error':
+									// CE不处理
+									if (penalty_CE) {
+										localstatus.board[r].problem[i.problem].times += 1
+									}
+								break
+								case 'AC':
+								case 'correct':
+									localstatus.board[r].problem[i.problem].time = parseFloat(i.time)
+									localstatus.board[r].solved += 1
+									localstatus.board[r].penalty_time += parseFloat(i.time) + localstatus.board[r].problem[i.problem].times * 20 * 60
+									if (
+										localstatus.first[i.problem] == null || 
+										localstatus.board[localstatus.list[localstatus.first[i.problem]]].problem[i.problem].time > i.time
+									) localstatus.first[i.problem] = i.team
+									localstatus.board[r].problem[i.problem].times += 1
+									raise(i.team)
+								break
+								default:
+									localstatus.board[r].problem[i.problem].times += 1
+								break
+							// 封榜后
+							} else if (parseFloat(i.time) >= t) {
+								if (i.result != 'CE' && i.result != 'compiler-error') {
+									localstatus.board[r].problem[i.problem].next = i.result
+									if (i.result == 'AC' || i.result == 'correct') localstatus.board[r].problem[i.problem].time = parseFloat(i.time)
+									else {
+										localstatus.board[r].problem[i.problem].next_time = parseFloat(i.time)
+										localstatus.board[r].problem[i.problem].times += 1
+									}
+								} else if (penalty_CE) localstatus.board[r].problem[i.problem].times += 1
+							}
+						}
+					}
+					localstatus.step = localstatus.team_count - 1
+				}
+				// 更新全部数据
+				order()
+				row.addClass('anime')
+				localstatus.timestamp = new Date().getTime() / 1000
+				localstatus.init = true;
+			}
+			function update(data){
+				localstatus.timestamp = new Date().getTime() / 1000
+			}
+			// 读取评测数据
+			function feed() {
+				$.get('./feed.json', function(data, localstatus){
+					if (!localstatus.init) {
+						localstatus = initcontest(data)
+					} else {
+						update(data)
+					}
+				})
+			}
+			$(document).ready(function(){
+				feed()
+			})
+		</script>
+	</body>
+</html>
